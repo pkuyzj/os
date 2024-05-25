@@ -153,6 +153,7 @@ replace(char *buf)
 }
 
 // Execute cmd.  Never returns.
+__attribute__((noreturn))
 void
 runcmd(struct cmd *cmd)
 {

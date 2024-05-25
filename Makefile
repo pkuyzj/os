@@ -106,6 +106,9 @@ $T/kernel: $(OBJS) $(linker) $U/initcode
 	@$(OBJDUMP) -t $T/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $T/kernel.sym
   
 build: $T/kernel userprogs
+all: build
+	mv $T/kernel $T/kernel-qemu
+	cp $T/kernel-qemu kernel-qemu
 
 # Compile RustSBI
 RUSTSBI:
@@ -129,7 +132,7 @@ ifndef CPUS
 CPUS := 2
 endif
 
-QEMUOPTS = -machine virt -kernel $T/kernel -m 8M -nographic
+QEMUOPTS = -machine virt -kernel $T/kernel -m 32M -nographic
 
 # use multi-core 
 QEMUOPTS += -smp $(CPUS)
@@ -223,13 +226,13 @@ fs: $(UPROGS)
 		echo "making fs image..."; \
 		dd if=/dev/zero of=fs.img bs=512k count=512; \
 		mkfs.vfat -F 32 fs.img; fi
-	@sudo mount fs.img $(dst)
-	@if [ ! -d "$(dst)/bin" ]; then sudo mkdir $(dst)/bin; fi
-	@sudo cp README $(dst)/README
+	@mount fs.img $(dst)
+	@if [ ! -d "$(dst)/bin" ]; then mkdir $(dst)/bin; fi
+	@cp README $(dst)/README
 	@for file in $$( ls $U/_* ); do \
-		sudo cp $$file $(dst)/$${file#$U/_};\
-		sudo cp $$file $(dst)/bin/$${file#$U/_}; done
-	@sudo umount $(dst)
+		cp $$file $(dst)/$${file#$U/_};\
+		cp $$file $(dst)/bin/$${file#$U/_}; done
+	@umount $(dst)
 
 # Write mounted sdcard
 sdcard: userprogs
